@@ -45,7 +45,7 @@ class ExpressionClassifier:
     doesn't flicker frame-to-frame.
     """
 
-    def __init__(self, smoothing_window=6):
+    def __init__(self, smoothing_window=4):
         self.smoothing_window = smoothing_window
         self.mouth_open_hist = deque(maxlen=smoothing_window)
         self.smile_hist = deque(maxlen=smoothing_window)
@@ -53,17 +53,15 @@ class ExpressionClassifier:
         self.brow_hist = deque(maxlen=smoothing_window)
         self.frown_hist = deque(maxlen=smoothing_window)
 
-        # Tunable thresholds -- nudge these if detection feels off for your face/lighting
-        self.EAR_SLEEPY_THRESH = 0.16       # below this -> eyes considered closed
-        self.MOUTH_OPEN_SURPRISE = 0.55     # mouth open ratio above this -> surprised
-        self.SMILE_RATIO_THRESH = 0.42      # mouth width / face width above this -> smiling
-        self.BROW_ANGRY_THRESH = 0.10       # brow-to-eye distance below this -> furrowed/angry
-        self.FROWN_SAD_THRESH = 0.045       # mouth corners drooping below this -> sad
+        self.EAR_SLEEPY_THRESH = 0.16
+        self.MOUTH_OPEN_SURPRISE = 0.10
+        self.SMILE_RATIO_THRESH = 0.42
+        self.BROW_ANGRY_THRESH = 0.18
+        self.FROWN_SAD_THRESH = 0.05
 
         self.last_metrics = {"mouth_open": 0, "smile": 0, "ear": 0, "brow": 0, "frown": 0}
 
     def debug_lines(self):
-        """Returns formatted strings for on-screen debug overlay, with thresholds alongside."""
         m = self.last_metrics
         return [
             f"mouth_open: {m['mouth_open']:.3f}  (surprise > {self.MOUTH_OPEN_SURPRISE})",
@@ -95,7 +93,6 @@ class ExpressionClassifier:
                      _dist(landmarks[RIGHT_BROW], landmarks[RIGHT_EYE_TOP])) / 2.0
         brow_ratio = brow_dist / face_width
 
-        # Frown: how far mouth corners droop below the upper-lip midpoint
         mouth_corner_avg_y = (landmarks[61][1] + landmarks[291][1]) / 2.0
         frown_amount = (mouth_corner_avg_y - landmarks[13][1]) / face_width
 
@@ -119,16 +116,9 @@ class ExpressionClassifier:
             "frown": smooth_frown,
         }
 
-        # Priority matters -- checked in this order:
-        # 1) sleepy (eyes closed) -- most visually obvious, overrides everything
-        # 2) surprised (mouth wide open + brows not furrowed)
-        # 3) angry (brows pulled down/furrowed, mouth not smiling wide)
-        # 4) happy (smile ratio)
-        # 5) sad (mouth corners drooping)
-        # 6) neutral (fallback)
         if smooth_ear < self.EAR_SLEEPY_THRESH:
             return "sleepy"
-        elif smooth_mouth_open > self.MOUTH_OPEN_SURPRISE and smooth_brow > self.BROW_ANGRY_THRESH:
+        elif smooth_mouth_open > self.MOUTH_OPEN_SURPRISE:
             return "surprised"
         elif smooth_brow < self.BROW_ANGRY_THRESH and smooth_smile < self.SMILE_RATIO_THRESH:
             return "angry"
