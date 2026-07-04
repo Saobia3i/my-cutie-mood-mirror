@@ -233,7 +233,7 @@ CUSTOM_CSS = """
 }
 """
 
-with gr.Blocks(title="Mood Mirror 🐱") as demo:
+with gr.Blocks(title="Mood Mirror 🐱", theme=THEME, css=CUSTOM_CSS) as demo:
     with gr.Column(elem_id="title-block"):
         gr.Markdown(
             "# 🐱 Mood Mirror\n"
@@ -267,7 +267,4 @@ with gr.Blocks(title="Mood Mirror 🐱") as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(
-        theme=THEME,
-        css=CUSTOM_CSS,
-    )
+    demo.launch()

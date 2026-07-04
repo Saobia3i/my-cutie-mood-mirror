@@ -1,48 +1,56 @@
-# Mood Mirror 🐱✨
+---
+title: Mood Mirror
+emoji: 🐱
+colorFrom: pink
+colorTo: purple
+sdk: gradio
+sdk_version: 6.19.0
+app_file: app.py
+pinned: false
+---
 
-A cute webcam toy: your facial expression is mirrored live onto a cartoon
-cat character in the center of the screen, with soft particle effects and
-gentle encouraging messages.
+# Mood Mirror
 
-## Setup
+A cute webcam toy: your facial expression is mirrored live onto a cartoon cat
+character with soft particle effects and gentle encouraging messages.
+
+Allow camera access, then smile, look surprised, squint sleepily, furrow your
+brow, or pout to watch the cat react.
+
+## Deploy
+
+This project is ready for Hugging Face Spaces.
+
+1. Push this repo to GitHub.
+2. Create a new Hugging Face Space.
+3. Choose `Gradio` as the SDK.
+4. Connect/import the GitHub repo, or upload these files directly.
+
+Hugging Face will use:
+
+- `app.py` as the app entry point.
+- `requirements.txt` for dependencies.
+- `face_landmarker.task` and `assets/` as bundled runtime assets.
+
+## Local Run
 
 ```bash
 pip install -r requirements.txt
+python app.py
+```
+
+For the native OpenCV desktop version:
+
+```bash
 python main.py
 ```
 
-Press **q** or **Esc** to quit.
+Press `q` or `Esc` to quit the desktop version.
 
-## How it works
+## How It Works
 
-- `face_tracker.py` — MediaPipe Face Mesh extracts 468 facial landmarks per frame.
-- `expression_classifier.py` — rule-based logic (no ML training needed) turns
-  landmark distances into one of 4 moods: `neutral`, `happy`, `surprised`, `sleepy`.
-  Uses eye-aspect-ratio for blink/sleepy detection, mouth-open ratio for surprise,
-  and mouth-width ratio for smile detection. Smoothed over a short frame window
-  so the mood doesn't flicker.
-- `character.py` — loads the 4 sprite states and renders the character centered
-  on screen with a soft crossfade between moods and a gentle idle bounce.
-- `particles.py` — hearts (happy), stars (surprised), floating "z" (sleepy).
-- `main.py` — glues it all together: dims/blurs the raw webcam feed as backdrop,
-  tints it per mood, and overlays the character + particles + message popups.
-
-## Tuning
-
-If mood detection feels off for your lighting/face, adjust the thresholds in
-`expression_classifier.py`:
-
-```python
-self.EAR_SLEEPY_THRESH = 0.16
-self.MOUTH_OPEN_SURPRISE = 0.55
-self.SMILE_RATIO_THRESH = 0.42
-```
-
-Lower `EAR_SLEEPY_THRESH` if it triggers sleepy too easily; raise
-`SMILE_RATIO_THRESH` if it's too eager to call things a smile, etc.
-
-## Assets
-
-`assets/neutral.png`, `happy.png`, `surprised.png`, `sleepy.png` — cropped from
-the provided cat sprite sheet. Swap these with your own PNGs (transparent
-background) to reskin the character; just keep the same filenames.
+- `face_tracker.py` uses MediaPipe Face Landmarker.
+- `expression_classifier.py` uses rule-based expression detection.
+- `character.py` renders the mood sprite.
+- `particles.py` draws mood-specific particle effects.
+- `app.py` wraps everything in a browser-based Gradio app for deployment.
